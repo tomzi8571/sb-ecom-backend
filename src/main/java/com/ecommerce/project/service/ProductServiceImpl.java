@@ -51,6 +51,9 @@ public class ProductServiceImpl implements ProductService {
     @Value("${project.image}")
     private String imageRootPath;
 
+    @Value("${image.base.url}")
+    private String imageBaseUrl;
+
     @Override
     public ProductDto addProduct(Long categoryId, ProductDto productDto) {
 
@@ -83,6 +86,10 @@ public class ProductServiceImpl implements ProductService {
         return getProductResponse(productPage);
     }
 
+    private String constructImageUrl(String imageName) {
+        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
+    }
+
     private static Sort getSortByAndOrder(String sortBy, String sortOrder) {
         Sort sortByAndOrder = Objects.equals(sortOrder, "asc")
                 ? Sort.by(sortBy).ascending()
@@ -111,7 +118,11 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductResponse getProductResponse(Page<Product> productPage) {
         List<ProductDto> products = productPage
-                .stream().map(product -> modelMapper.map(product, ProductDto.class))
+                .stream().map(product -> {
+                    ProductDto prod = modelMapper.map(product, ProductDto.class);
+                    prod.setImage(constructImageUrl(prod.getImage()));
+                    return prod;
+                })
                 .toList();
         if (productPage.isEmpty()) {
             throw new ApiException("No productPage found");
