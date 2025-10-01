@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 public interface ProductService {
     ProductDto addProduct(Long categoryId, ProductDto productDto);
 
-    ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+    ProductResponse getAllProducts(String keyword, String category, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
     ProductResponse findProductsByCategory(Long categoryId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 

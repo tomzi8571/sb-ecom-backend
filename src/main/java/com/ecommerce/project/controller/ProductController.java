@@ -36,12 +36,14 @@ public class ProductController {
 
     @GetMapping("/public/products")
     public ResponseEntity<ProductResponse> getAllProducts(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "pageNumber", defaultValue = PAGE_NUMBER) Integer pageNumber,
             @RequestParam(value = "pageSize", defaultValue = PAGE_SIZE) Integer pageSize,
             @RequestParam(value = "sortBy", defaultValue = SORT_PRODUCTS_BY) String sortBy,
             @RequestParam(value = "sortOrder", defaultValue = SORT_DIR) String sortOrder
     ) {
-        ProductResponse products = productService.getAllProducts(pageNumber, pageSize, sortBy, sortOrder);
+        ProductResponse products = productService.getAllProducts(keyword, category, pageNumber, pageSize, sortBy, sortOrder);
         return ResponseEntity.ok(products);
     }
 
