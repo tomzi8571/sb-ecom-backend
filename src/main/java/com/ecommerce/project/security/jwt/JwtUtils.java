@@ -32,6 +32,8 @@ public class JwtUtils {
     private int jwtExpirationTime;
     @Value("${spring.app.jwtSecret}")
     private String jwtSecret;
+    @Value("${spring.app.secureCookie}")
+    private boolean secureCookie;
 
     // Get JWT  Header
     public String getJwtFromHeader(HttpServletRequest request) {
@@ -57,6 +59,8 @@ public class JwtUtils {
                 .path("/api")
                 .maxAge(MAX_AGE_SECONDS_ONE_DAY)
                 .httpOnly(false)
+                // Should be true in production with HTTPS
+                .secure(secureCookie)
                 .build();
     }
 

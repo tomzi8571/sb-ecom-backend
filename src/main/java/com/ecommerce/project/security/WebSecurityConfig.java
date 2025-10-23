@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -61,7 +62,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(
@@ -72,13 +73,16 @@ public class WebSecurityConfig {
                         requests.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
+                                //.requestMatchers("/api/admin/**").permitAll()
                                 .requestMatchers("/api/public/**").permitAll()
                                 .requestMatchers("/swagger-resources/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
-//                                .requestMatchers("/api/admin/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/images/**").permitAll()
                                 .requestMatchers("/error/**").permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .anyRequest().authenticated())
                 .authenticationProvider(authenticationProviderBean())
                 .addFilterBefore(authenticationJwtTokenFilterBean(),
@@ -96,7 +100,7 @@ public class WebSecurityConfig {
         return (web -> web.ignoring().requestMatchers("/v2/api-docs",
                 "/configuration/ui",
                 "/configuration/security",
-                "/webjars/**","/favicon.ico"));
+                "/webjars/**", "/favicon.ico"));
     }
 
     @Bean
