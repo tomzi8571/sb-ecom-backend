@@ -58,7 +58,7 @@ jobs:
           fi
 
           deploy_url="${RENDER_DEPLOY_HOOK_URL}&imageURL=${IMAGE_URL}"
-          echo "Triggering deploy via webhook for Render service ${RENDER_SERVICE_ID}"
+          echo "Triggering deploy via webhook for Render service ${RENDER_SERVICE_ID} to ${deploy_url}"
           # Use -sSf so failures surface in the action
           curl -sSf "$deploy_url" || { echo "Failed to trigger Render deploy"; exit 1; }
 
