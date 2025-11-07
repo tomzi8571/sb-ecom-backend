@@ -25,7 +25,7 @@ jobs:
           fi
 
           # Build the full URL inside the shell so shell variable expansion works correctly
-          KEEP_ALIVE_URL="${SERVICE_WEB_URL%/}/api/public/products"
+          KEEP_ALIVE_URL="${SERVICE_WEB_URL}/api/public/products"
 
           echo "Pinging ${KEEP_ALIVE_URL}"
           # fail the step if the service is unreachable or returns 5xx/4xx
