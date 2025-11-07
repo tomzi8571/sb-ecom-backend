@@ -1,0 +1,53 @@
+name: Render Keep-Alive (ping + optional redeploy)
+
+# Keeps a Render service awake by periodically pinging the public URL or
+# triggering the Render redeploy hook. Adjust the cron frequency to suit your needs.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # every 30 minutes — change as needed
+  workflow_dispatch: {}
+
+jobs:
+  keep-alive:
+    # Use `ubuntu-latest` for GitHub-hosted runners. If you prefer a self-hosted runner
+    # change this to: runs-on: [self-hosted, linux, keepalive]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render service URL
+        env:
+          SERVICE_WEB_URL: ${{ secrets.SERVICE_WEB_URL }}
+          KEEP_ALIVE_URL: ${SERVICE_WEB_URL}/api/public/products
+        run: |
+          if [ -z "$SERVICE_WEB_URL" ]; then
+            echo "Missing secret SERVICE_WEB_URL. Create it at Settings → Secrets and variables → Actions.";
+            exit 1;
+          fi
+
+          echo "Pinging $KEEP_ALIVE_URL"
+          # fail the step if the service is unreachable or returns 5xx/4xx
+          curl -sSf --max-time 15 "$KEEP_ALIVE_URL" || { echo "Ping failed"; exit 1; }
+
+#      - name: Optional: Trigger Render redeploy hook
+#        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+#        env:
+#          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+#        run: |
+#          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+#            echo "RENDER_DEPLOY_HOOK_URL secret not set; skipping redeploy.";
+#            exit 0;
+#          fi
+#
+#          echo "Calling Render redeploy hook"
+#          curl -sSf "$RENDER_DEPLOY_HOOK_URL" || { echo "Redeploy webhook call failed"; exit 1; }
+
+# Notes:
+# - Create the repository secrets used above at: Settings → Secrets and variables → Actions
+#   * SERVICE_WEB_URL: the public URL of the Render service (https://your-service.onrender.com or custom domain)
+#   * RENDER_DEPLOY_HOOK_URL (optional): the deploy webhook URL Render provides when you create a "Deploy Hook" for the service
+# - If you want the job to run on a self-hosted runner, register a runner in your repository or organization,
+#   add a label such as `keepalive`, and set `runs-on: [self-hosted, linux, keepalive]`.
+# - Avoid overly aggressive cron schedules; hitting the service every minute is usually unnecessary and may violate Render's acceptable use.
+# - If a more authoritative approach is required (triggering a specific image tag deploy), use the Render REST API with `RENDER_API_KEY` and `RENDER_SERVICE_ID` secrets instead of the webhook.
+
