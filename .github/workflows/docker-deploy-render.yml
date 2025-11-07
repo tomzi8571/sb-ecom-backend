@@ -1,6 +1,6 @@
 name: Build and Deploy Docker image to Render.com
 
-# Ensure the GITHUB_TOKEN has permissions to push to GHCR (packages: write)
+# Ensure the GITHUB_TOKEN has permissions to push to GHCR (packages: write).
 permissions:
   contents: read
   packages: write
