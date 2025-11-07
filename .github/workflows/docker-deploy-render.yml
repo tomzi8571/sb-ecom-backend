@@ -6,8 +6,8 @@ permissions:
   packages: write
 
 on:
-#  push:
-#    branches: [ main ]
+  push:
+    branches: [ dev ]
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/sb-ecom

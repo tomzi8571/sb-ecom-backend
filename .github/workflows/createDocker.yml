@@ -1,4 +1,4 @@
-name: Build and Deploy Docker image to Render
+name: Build and Deploy Docker image to Render 2
 
 # Ensure the GITHUB_TOKEN has permissions to push to GHCR (packages: write)
 permissions:
