@@ -1,0 +1,15 @@
+meta {
+  name: Update Product Image
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{url}}/api/products/60/image
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  image: @file(C:\Users\Thomas Zillinger\OneDrive\Dokumente\develop\udemy-spring\sb-com\images\600x400.png)
+}

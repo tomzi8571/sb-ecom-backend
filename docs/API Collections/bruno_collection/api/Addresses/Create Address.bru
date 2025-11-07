@@ -1,0 +1,23 @@
+meta {
+  name: Create Address
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/api/addresses
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "country": "USA",
+      "city": "San Francisco",
+      "street": "Market Street 2",
+      "pincode": "94103",
+      "buildingName": "Bay Apartments 2",
+      "state": "California"
+  }
+  
+}

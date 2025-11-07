@@ -1,0 +1,22 @@
+meta {
+  name: Update Product
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{url}}/api/admin/products/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "productName": "Simple.alert(\"Hi\")",
+      "description": "Adjustable dumbbell set for home workouts, can be used indoors, outdoors, at your personal gym. This is available at lowest possible rates.",
+      "quantity": 0,
+      "price": 200,
+      "discount": 10
+  }
+  
+}

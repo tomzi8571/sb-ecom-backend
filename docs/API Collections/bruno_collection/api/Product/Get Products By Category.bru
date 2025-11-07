@@ -1,0 +1,18 @@
+meta {
+  name: Get Products By Category
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{url}}/api/public/categories/10/products?pageNumber=0&pageSize=10&sortBy=productId&sortOrder=desc
+  body: none
+  auth: none
+}
+
+params:query {
+  pageNumber: 0
+  pageSize: 10
+  sortBy: productId
+  sortOrder: desc
+}

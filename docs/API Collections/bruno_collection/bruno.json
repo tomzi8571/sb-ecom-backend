@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Java Spring Boot: Professional eCommerce Project Masterclass",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

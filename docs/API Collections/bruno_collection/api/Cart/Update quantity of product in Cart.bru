@@ -1,0 +1,15 @@
+meta {
+  name: Update quantity of product in Cart
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{url}}/api/cart/products/2/quantity/add
+  body: none
+  auth: none
+}
+
+headers {
+  ~: 
+}

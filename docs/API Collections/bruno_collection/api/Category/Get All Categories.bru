@@ -1,0 +1,18 @@
+meta {
+  name: Get All Categories
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/api/public/categories?pageNumber=0&pageSize=10&sortBy=categoryName&sortOrder=asc
+  body: none
+  auth: none
+}
+
+params:query {
+  pageNumber: 0
+  pageSize: 10
+  sortBy: categoryName
+  sortOrder: asc
+}

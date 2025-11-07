@@ -1,0 +1,23 @@
+meta {
+  name: Update Address
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{url}}/api/addresses/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "country": "USA",
+      "city": "San Francisco",
+      "street": "Market Street",
+      "pincode": "94103",
+      "buildingName": "Bay Apartments Updated",
+      "state": "California"
+  }
+  
+}

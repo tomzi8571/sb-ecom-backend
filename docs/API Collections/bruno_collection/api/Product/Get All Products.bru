@@ -1,0 +1,15 @@
+meta {
+  name: Get All Products
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{url}}/api/public/products
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTc1MDA5MTE0NiwiZXhwIjoxNzUwMDk0MTQ2fQ.SrbDKQ7VkcZNyD1f9iL6u1yhQv9ThkvA7l1SWznfk8A
+}

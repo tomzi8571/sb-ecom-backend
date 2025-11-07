@@ -1,0 +1,17 @@
+meta {
+  name: Update Category
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{url}}/api/public/categories/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "categoryName":"Travel Updated"
+  }
+}

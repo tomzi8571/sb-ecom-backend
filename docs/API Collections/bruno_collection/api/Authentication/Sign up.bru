@@ -1,0 +1,20 @@
+meta {
+  name: Sign up
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{url}}/api/auth/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "username":"user4",
+      "email":"user4email@gmail.com",
+      "password":"password4",
+      "role":["adfadsf"]
+  }
+}

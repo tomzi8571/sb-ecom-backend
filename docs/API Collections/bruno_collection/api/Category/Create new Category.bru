@@ -1,0 +1,22 @@
+meta {
+  name: Create new Category
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{url}}/api/public/categories
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTc1MDA5MDUzMCwiZXhwIjoxNzUwMDkzNTMwfQ.2vToTVoYxlKtsAdF3blK5WESqxljPByyLr6aXLhTuWE
+}
+
+body:json {
+  {
+    "categoryId": 0,
+    "categoryName":"Electronics"
+  }
+}

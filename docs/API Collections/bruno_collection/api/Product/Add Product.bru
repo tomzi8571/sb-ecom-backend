@@ -1,0 +1,25 @@
+meta {
+  name: Add Product
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/api/admin/categories/3/product
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMSIsImlhdCI6MTc1MDA5MDUzMCwiZXhwIjoxNzUwMDkzNTMwfQ.2vToTVoYxlKtsAdF3blK5WESqxljPByyLr6aXLhTuWE
+}
+
+body:json {
+  {
+      "productName": "Sony WH-1000XM5",
+      "description": "Industry-leading noise-cancelling headphones with premium sound quality and long battery life.",
+      "quantity": 60,
+      "price": 399,
+      "discount": 15
+  }
+}
