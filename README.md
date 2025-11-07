@@ -105,3 +105,9 @@ ENTRYPOINT ["sh","-c","exec java -Dserver.port=${PORT} -jar /app/app.jar"]
 This is optional because `application-prod.properties` already sets `server.port=${PORT:8080}`, but it can help in edge cases where the properties file is not loaded.
 
 If you want, I can add the optional Dockerfile change now and update the CI workflow to pass the `PORT` env var explicitly when Render deploys (usually not necessary since Render sets `PORT`).
+
+# Swagger
+## Local
+Swagger UI: http://localhost:8080/swagger-ui/index.html
+Api Docs: http://localhost:8080/v3/api-docs
+
