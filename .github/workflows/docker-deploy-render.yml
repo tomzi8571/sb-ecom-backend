@@ -1,0 +1,91 @@
+name: Build and Deploy Docker image to Render
+
+# Ensure the GITHUB_TOKEN has permissions to push to GHCR (packages: write)
+permissions:
+  contents: read
+  packages: write
+
+on:
+#  push:
+#    branches: [ main ]
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/sb-ecom
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          platforms: linux/amd64
+
+#      - name: Trigger deploy on Render
+#        # Only run this step if the branch is main
+#        env:
+#          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}&imageURL=${{IMAGE_NAME}}:latest
+#        run: |
+#          if [ -z "$deploy_url" ]; then
+#            echo "Missing RENDER_DEPLOY_HOOK_URL secret. Aborting.";
+#            exit 1;
+#          fi
+#          if [ -z "${secrets.RENDER_DEPLOY_HOOK_URL}" ]; then
+#            echo "Missing RENDER_DEPLOY_HOOK_URL. Aborting.";
+#            exit 1;
+#          fi
+#          echo "Triggering deploy for Render service $RENDER_SERVICE_ID"
+#          curl "$deploy_url"
+
+#      - name: Trigger deploy on Render
+#        env:
+#          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+#          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+#          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+#          IMAGE_TAG: ${{ github.sha }}
+#          SPRING_PROFILES_ACTIVE: prod
+#        run: |
+#          if [ -z "${RENDER_API_KEY}" ] || [ -z "${RENDER_SERVICE_ID}" ]; then
+#            echo "Missing RENDER_API_KEY or RENDER_SERVICE_ID secret. Aborting.";
+#            exit 1;
+#          fi
+#
+#          echo "Triggering deploy for Render service $RENDER_SERVICE_ID"
+#
+#          resp=$(curl -s -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+#            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+#            -H "Content-Type: application/json" \
+#            -d '{"clearCache":false, "env": {"SPRING_PROFILES_ACTIVE":"prod"}}')
+#
+#          echo "Render response: $resp"
+
+# Required repository secrets:
+# - RENDER_API_KEY : Render service or account API key with deploy permission
+# - RENDER_SERVICE_ID : Render service id (srv-xxxxx)
+# - GITHUB_TOKEN (default) or a PAT with packages:write and packages:read to push to GHCR if required
+
+# Notes:
+# - This workflow builds a Docker image and pushes to GHCR at ghcr.io/<owner>/sb-ecom:sha and :latest.
+# - Ensure the Render service is configured to pull from GHCR and is authorized to access the registry (Render supports pulling from private registries when credentials are configured in the Render dashboard).
+# - If Render can't access GHCR, you can push to Docker Hub instead (add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets and change the registry/login steps).

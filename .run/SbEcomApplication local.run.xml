@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SbEcomApplication local" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local" />
+    <envs>
+      <env name="STRIPE_SECRET_KEY" value="sk_test_51SPmNoLYaQPOeVqWiHr1bExERlL0F0aktHFMjbDHp2e0LhnQck1lKO7wgTjw1snmgONEIQ4gQHm9TvwvVdirhlRJ00Bnbok9wR" />
+    </envs>
+    <option name="envFilePaths">
+      <option value="$PROJECT_DIR$/.env.local" />
+    </option>
+    <module name="sb-ecom" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.ecommerce.project.SbEcomApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
