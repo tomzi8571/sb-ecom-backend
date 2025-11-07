@@ -1,7 +1,9 @@
 package com.ecommerce.project.controller;
 
+import com.ecommerce.project.exceptions.ResourceNotFoundException;
 import com.ecommerce.project.model.Cart;
 import com.ecommerce.project.payload.CartDto;
+import com.ecommerce.project.payload.CartItemDto;
 import com.ecommerce.project.repositories.CartRepository;
 import com.ecommerce.project.service.CartService;
 import com.ecommerce.project.util.AuthUtil;
@@ -23,6 +25,12 @@ public class CartController {
     @Autowired
     private CartRepository cartRepository;
 
+    @PostMapping("/cart")
+    public ResponseEntity<String> createOrUpdateCart(@RequestBody List<CartItemDto> cartItems) {
+        String response = cartService.createOrUpdateCartWithItems(cartItems);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
     @PostMapping("/carts/products/{productId}/quantity/{quantity}")
     public ResponseEntity<CartDto> addProduct(
             @PathVariable Long productId, @PathVariable Integer quantity) {
@@ -36,10 +44,13 @@ public class CartController {
         return new ResponseEntity<List<CartDto>>(allCarts, HttpStatus.FOUND);
     }
 
-    @GetMapping("/carts/users/cart")
+    @GetMapping("/cart")
     public ResponseEntity<CartDto> getCartsByUser() {
         String userEmail = authUtil.loggedInEmail();
         Cart cart = cartRepository.findCartByEmail(userEmail);
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart", "email", userEmail);
+        }
         CartDto cartDto = cartService.getCart(userEmail, cart.getCartId());
         return ResponseEntity.ok(cartDto);
     }

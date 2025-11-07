@@ -6,11 +6,13 @@ import com.ecommerce.project.model.Cart;
 import com.ecommerce.project.model.CartItem;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.CartDto;
+import com.ecommerce.project.payload.CartItemDto;
 import com.ecommerce.project.payload.ProductDto;
 import com.ecommerce.project.repositories.CartItemRepository;
 import com.ecommerce.project.repositories.CartRepository;
 import com.ecommerce.project.repositories.ProductRepository;
 import com.ecommerce.project.util.AuthUtil;
+import io.jsonwebtoken.lang.Objects;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -38,7 +40,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto addProductToCart(Long productId, Integer quantity) {
-        Cart cart = creatCart();
+        Cart cart = fetchOrCreateCart();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
@@ -221,32 +223,54 @@ public class CartServiceImpl implements CartService {
         cart.setTotalPrice(cartPrice
                 + (cartItem.getProductPrice() * cartItem.getQuantity()));
 
-        cartItem = cartItemRepository.save(cartItem);
+        cartItemRepository.save(cartItem);
     }
-//    private String deleteProductFromCart(Long cartId, Long productId) {
-//        Cart cart = cartRepository.findById(cartId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
-//
-//        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
-//
-//        if (cartItem == null) {
-//            throw new ResourceNotFoundException("Product", "productId", productId);
-//        }
-//
-//        cart.setTotalPrice(cart.getTotalPrice() -
-//                (cartItem.getProductPrice() * cartItem.getQuantity()));
-//
-//        cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
-//
-//        return "Product " + cartItem.getProduct().getProductName() + " removed from the cart !!!";
-//    }
+
+    @Override
+    @Transactional
+    public String createOrUpdateCartWithItems(List<CartItemDto> cartItems) {
+        Cart cart = fetchOrCreateCart();
+
+        // Clear all current items in the existing cart
+        if (!Objects.isEmpty(cart.getCartItems())) {
+            cartItemRepository.deleteAllByCartId(cart.getCartId());
+            cart.getCartItems().clear();
+            cartRepository.save(cart);
+        }
+        double totalPrice = 0.00;
+        // Process each item in the request to add the cart
+        for (CartItemDto cartItem : cartItems) {
+            Long productId = cartItem.getProductId();
+            Integer quantity = cartItem.getQuantity();
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+            // Lets update this after we checked it after it was ordered and payed.
+            // product.setQuantity(product.getQuantity() - quantity);
+            totalPrice += product.getSpecialPrice() * quantity;
+
+            CartItem newCartItem = new CartItem();
+            newCartItem.setProduct(product);
+            newCartItem.setCart(cart);
+            newCartItem.setQuantity(quantity);
+            newCartItem.setDiscount(product.getDiscount());
+            newCartItem.setProductPrice(product.getSpecialPrice());
+            cartItemRepository.save(newCartItem);
+            cart.getCartItems().add(newCartItem);
+        }
+
+        cart.setTotalPrice(totalPrice);
+        cartRepository.save(cart);
+
+        return "Cart created or updated successfully";
+    }
 
     String deleteProductFromCart(CartItem cartItem) {
         cartItemRepository.deleteByIdCustom(cartItem.getCartItemId());
         return "Product " + cartItem.getProduct().getProductName() + " removed from the cart !!!";
     }
 
-    private Cart creatCart() {
+    private Cart fetchOrCreateCart() {
         Cart cart = cartRepository.findCartByEmail(authUtil.loggedInEmail());
         if (cart != null) {
             return cart;
