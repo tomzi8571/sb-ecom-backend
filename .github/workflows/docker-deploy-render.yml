@@ -46,7 +46,7 @@ jobs:
         # Only run this step if the branch is main
         env:
           SPRING_PROFILES_ACTIVE: prod
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}&imageURL=${{IMAGE_NAME}}:latest
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}&imageURL=${{env.IMAGE_NAME}}:latest
         run: |
           if [ -z "$deploy_url" ]; then
             echo "Missing RENDER_DEPLOY_HOOK_URL secret. Aborting.";
