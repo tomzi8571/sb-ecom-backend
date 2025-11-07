@@ -11,6 +11,7 @@ COPY mvnw* ./
 COPY images/ images/
 
 # Use Maven wrapper if available, otherwise fallback to system mvn in CI
+RUN chmod +x ./mvnw
 RUN ./mvnw -B -ntp -DskipTests package -DskipITs
 
 # Runtime stage
