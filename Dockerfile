@@ -7,9 +7,11 @@ WORKDIR /workspace
 COPY pom.xml mvnw ./
 COPY .mvn/ .mvn/
 COPY src/ src/
+COPY mvnw* ./
+COPY images/ images/
 
 # Use Maven wrapper if available, otherwise fallback to system mvn in CI
-RUN ./mvnw -B -ntp -DskipTests package -DskipITs || mvn -B -DskipTests package
+RUN ./mvnw -B -ntp -DskipTests package -DskipITs
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-jammy
