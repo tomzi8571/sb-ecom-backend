@@ -5,7 +5,7 @@ name: Render Keep-Alive (ping + optional redeploy)
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # every 30 minutes — change as needed
+    - cron: '*/10 * * * *' # every 10 minutes — change as needed
   workflow_dispatch: {}
 
 jobs:
@@ -18,16 +18,18 @@ jobs:
       - name: Ping Render service URL
         env:
           SERVICE_WEB_URL: ${{ secrets.SERVICE_WEB_URL }}
-          KEEP_ALIVE_URL: ${SERVICE_WEB_URL}/api/public/products
         run: |
           if [ -z "$SERVICE_WEB_URL" ]; then
             echo "Missing secret SERVICE_WEB_URL. Create it at Settings → Secrets and variables → Actions.";
             exit 1;
           fi
 
-          echo "Pinging $KEEP_ALIVE_URL"
+          # Build the full URL inside the shell so shell variable expansion works correctly
+          KEEP_ALIVE_URL="${SERVICE_WEB_URL%/}/api/public/products"
+
+          echo "Pinging ${KEEP_ALIVE_URL}"
           # fail the step if the service is unreachable or returns 5xx/4xx
-          curl -sSf --max-time 15 "$KEEP_ALIVE_URL" || { echo "Ping failed"; exit 1; }
+          curl -sSf --max-time 15 "${KEEP_ALIVE_URL}" || { echo "Ping failed"; exit 1; }
 
 #      - name: Optional: Trigger Render redeploy hook
 #        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
@@ -50,4 +52,3 @@ jobs:
 #   add a label such as `keepalive`, and set `runs-on: [self-hosted, linux, keepalive]`.
 # - Avoid overly aggressive cron schedules; hitting the service every minute is usually unnecessary and may violate Render's acceptable use.
 # - If a more authoritative approach is required (triggering a specific image tag deploy), use the Render REST API with `RENDER_API_KEY` and `RENDER_SERVICE_ID` secrets instead of the webhook.
-
