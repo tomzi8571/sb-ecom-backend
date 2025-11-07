@@ -43,21 +43,24 @@ jobs:
           platforms: linux/amd64
 
       - name: Trigger deploy on Render
-        # Only run this step if the branch is main
+        # Use Actions expressions to populate env vars; avoid using ${secrets...} inside shell
         env:
           SPRING_PROFILES_ACTIVE: prod
-          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}&imageURL=${{env.IMAGE_NAME}}:latest
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          IMAGE_URL: ${{ env.IMAGE_NAME }}:latest
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
-          if [ -z "$deploy_url" ]; then
+          # validate inputs
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
             echo "Missing RENDER_DEPLOY_HOOK_URL secret. Aborting.";
             exit 1;
           fi
-          if [ -z "${secrets.RENDER_DEPLOY_HOOK_URL}" ]; then
-            echo "Missing RENDER_DEPLOY_HOOK_URL. Aborting.";
-            exit 1;
-          fi
-          echo "Triggering deploy for Render service $RENDER_SERVICE_ID"
-          curl "$deploy_url"
+
+          deploy_url="${RENDER_DEPLOY_HOOK_URL}&imageURL=${IMAGE_URL}"
+          echo "Triggering deploy via webhook for Render service ${RENDER_SERVICE_ID}"
+          # Use -sSf so failures surface in the action
+          curl -sSf "$deploy_url" || { echo "Failed to trigger Render deploy"; exit 1; }
 
 #      - name: Trigger deploy on Render
 #        env:
