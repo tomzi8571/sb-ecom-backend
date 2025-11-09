@@ -51,7 +51,7 @@ https://render.com/docs/deploy-hooks#deploying-from-an-image-registry
 
 2. In github (Source: https://render.com/docs/deploy-hooks#deploying-from-an-image-registry)
 3. for the repository, go to 'Settings' / 'Secrets and Variables' / Actions
-3. Create a new repository secret: 
+3. Create a new repository secret:
    - Name: `RENDER_DEPLOY_HOOK_URL`
    - Paste the value from the Deploy Hook Url
 
@@ -111,3 +111,32 @@ If you want, I can add the optional Dockerfile change now and update the CI work
 Swagger UI: http://localhost:8080/swagger-ui/index.html
 Api Docs: http://localhost:8080/v3/api-docs
 
+# Securing Actuator endpoints
+The application exposes Spring Boot Actuator endpoints. The security rules in `WebSecurityConfig` are configured so that:
+
+- `/actuator/health` and `/actuator/info` are publicly accessible.
+- All other `/actuator/**` endpoints require an authenticated user with the `ROLE_ADMIN` authority.
+
+How to call protected actuator endpoints
+1. Obtain a JWT by authenticating against the API auth endpoint (the app provides `/api/auth/**` for login). Example (replace credentials):
+
+```bash
+# Request a JWT token (example JSON body; adjust field names to match your auth controller)
+curl -X POST https://<YOUR_SERVICE_URL>/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"adminPass"}'
+```
+
+The signin response will include a JWT token (usually in a field called `token` or `accessToken`).
+
+2. Call a protected actuator endpoint using the token:
+
+```bash
+curl -H "Authorization: Bearer <JWT_TOKEN>" https://<YOUR_SERVICE_URL>/actuator/env
+```
+
+Notes and production recommendations
+- The repository includes a `CommandLineRunner` that creates a default `admin` user with password `adminPass` if it does not exist. Change this default password and remove automatic default credentials for production.
+- Keep `management.endpoint.env.show-values=true` disabled in production unless you absolutely need it. If enabled, ensure actuator endpoints are restricted (only accessible from admin IPs or via VPN) and that `management.endpoint.*.keys-to-sanitize` includes all your secret keys.
+- Consider adding network-level restrictions on Render (or cloud provider) and avoid exposing sensitive actuator endpoints publicly.
+- If you prefer to secure actuator with basic auth or a specific management user, you can add a dedicated security configuration that applies only to `/actuator/**` and uses different credentials.

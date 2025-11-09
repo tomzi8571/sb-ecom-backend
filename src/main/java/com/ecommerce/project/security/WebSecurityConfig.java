@@ -78,6 +78,11 @@ public class WebSecurityConfig {
                                 .requestMatchers("/swagger-resources/**").permitAll()
                                 .requestMatchers("/webjars/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                // Actuator endpoints: permit root, health & info; require ADMIN for other actuator endpoints
+                                .requestMatchers("/actuator", "/actuator/").permitAll()
+                                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                                .requestMatchers("/actuator/info", "/actuator/info/**").permitAll()
+                                .requestMatchers("/actuator/**").hasRole("ADMIN")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
                                 //.requestMatchers("/api/admin/**").permitAll()
