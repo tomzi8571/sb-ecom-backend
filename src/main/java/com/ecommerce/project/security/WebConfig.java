@@ -20,8 +20,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        String[] frontendUrlList = StringUtils.split(frontendUrls, ",");
-        LOG.info("CORS allowed origins: {}", Arrays.asList(frontendUrlList));
+        // Split by comma, trim each origin, and remove empty entries
+        String[] frontendUrlList = Arrays.stream(frontendUrls.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        LOG.info("CORS allowed origins (normalized): {}", Arrays.asList(frontendUrlList));
+
         registry.addMapping("/**")
                 .allowedOrigins(frontendUrlList)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

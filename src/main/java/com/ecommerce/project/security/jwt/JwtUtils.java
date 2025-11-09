@@ -56,17 +56,24 @@ public class JwtUtils {
     public ResponseCookie generateJwtCookie(UserDetailsImpl user) {
         String jwtToken = generateTokenFromUsername(user.getUsername());
         return ResponseCookie.from(jwtCookie, jwtToken)
+                // Make the cookie available to the entire backend ("/") so it is sent on all backend requests
                 .path("/api")
                 .maxAge(MAX_AGE_SECONDS_ONE_DAY)
-                .httpOnly(false)
-                // Should be true in production with HTTPS
+                // HttpOnly = true is recommended so JS cannot read the cookie; the cookie will still be sent by the browser
+                .httpOnly(true)
+                // For cross-site cookie storage you must set SameSite=None and Secure=true (browser requirement)
+                .sameSite("None")
                 .secure(secureCookie)
                 .build();
     }
 
     public ResponseCookie generateCleanJwtCookie() {
-        return ResponseCookie.from(jwtCookie, null)
+        return ResponseCookie.from(jwtCookie, "")
                 .path("/api")
+                .maxAge(0)
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(secureCookie)
                 .build();
     }
 
