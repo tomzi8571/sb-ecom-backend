@@ -19,7 +19,7 @@ jobs:
         env:
           SERVICE_WEB_URL: ${{ secrets.SERVICE_WEB_URL }}
         run: |
-          # exit on unset vars and non-zero commands; pipefail helps catch curl failures
+          # exit on unset vars and non-zero commands; pipefail helps catch failures
           set -euo pipefail
 
           if [ -z "${SERVICE_WEB_URL:-}" ]; then
@@ -35,12 +35,29 @@ jobs:
           FAILURES=0
           for i in $(seq 1 10); do
             echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") Ping #$i"
-            if ! curl -sSf --max-time 15 "$KEEP_ALIVE_URL" >/dev/null; then
-              echo "Ping #$i failed"
-              FAILURES=$((FAILURES+1))
+
+            # Save response body to a temp file, capture HTTP status code.
+            TMP_BODY="$(mktemp)"
+            # Use -sS to show errors on stderr but keep stdout for -w.
+            HTTP_CODE=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" --max-time 15 "$KEEP_ALIVE_URL") || true
+
+            if [ -z "${HTTP_CODE:-}" ]; then
+              echo "curl did not return an HTTP code (curl failed).";
+              FAILURES=$((FAILURES+1));
             else
-              echo "Ping #$i succeeded"
+              echo "HTTP status: ${HTTP_CODE}"
+
+              echo "Response body (trimmed to 2000 bytes):"
+              head -c 2000 "$TMP_BODY" || true
+              echo "\n--- end response (truncated) ---"
+
+              case "$HTTP_CODE" in
+                2*) echo "Ping #$i succeeded" ;;
+                *) echo "Ping #$i returned non-2xx"; FAILURES=$((FAILURES+1)) ;;
+              esac
             fi
+
+            rm -f "$TMP_BODY" || true
 
             # Sleep only between pings, not after the last one
             if [ "$i" -lt 10 ]; then
