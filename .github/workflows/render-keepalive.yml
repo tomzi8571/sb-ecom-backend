@@ -15,21 +15,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ping Render service URL
+      - name: Run keep-alive loop (10 pings, 1 per minute)
         env:
           SERVICE_WEB_URL: ${{ secrets.SERVICE_WEB_URL }}
         run: |
-          if [ -z "$SERVICE_WEB_URL" ]; then
+          # exit on unset vars and non-zero commands; pipefail helps catch curl failures
+          set -euo pipefail
+
+          if [ -z "${SERVICE_WEB_URL:-}" ]; then
             echo "Missing secret SERVICE_WEB_URL. Create it at Settings → Secrets and variables → Actions.";
             exit 1;
           fi
 
-          # Build the full URL inside the shell so shell variable expansion works correctly
-          KEEP_ALIVE_URL="${SERVICE_WEB_URL}/api/public/products"
+          # Build the full URL and ensure we don't have a trailing slash duplication
+          KEEP_ALIVE_URL="${SERVICE_WEB_URL%/}/api/public/products"
 
-          echo "Pinging ${KEEP_ALIVE_URL}"
-          # fail the step if the service is unreachable or returns 5xx/4xx
-          curl -sSf --max-time 15 "${KEEP_ALIVE_URL}" || { echo "Ping failed"; exit 1; }
+          echo "Starting keep-alive to ${KEEP_ALIVE_URL} (10 pings, 1 per minute)"
+
+          FAILURES=0
+          for i in $(seq 1 10); do
+            echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") Ping #$i"
+            if ! curl -sSf --max-time 15 "$KEEP_ALIVE_URL" >/dev/null; then
+              echo "Ping #$i failed"
+              FAILURES=$((FAILURES+1))
+            else
+              echo "Ping #$i succeeded"
+            fi
+
+            # Sleep only between pings, not after the last one
+            if [ "$i" -lt 10 ]; then
+              sleep 60
+            fi
+          done
+
+          if [ "$FAILURES" -gt 0 ]; then
+            echo "${FAILURES} ping(s) failed"; exit 1;
+          fi
+
+          echo "All pings succeeded"
 
 #      - name: Optional: Trigger Render redeploy hook
 #        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
