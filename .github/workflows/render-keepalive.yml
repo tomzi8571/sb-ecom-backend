@@ -1,3 +1,8 @@
+# Keep-alive configuration anchors moved into top-level `env` so the workflow schema accepts them.
+env:
+  CRON_EXPR: &CRON_EXPR '*/20 * * * *'    # change this cron expression to update schedule
+  KEEP_ALIVE_MINUTES: &KEEP_ALIVE_MINUTES 20  # total minutes to run the keep-alive loop
+
 name: Render Keep-Alive (ping + optional redeploy)
 
 # Keeps a Render service awake by periodically pinging the public URL or
@@ -5,7 +10,7 @@ name: Render Keep-Alive (ping + optional redeploy)
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # every 10 minutes — change as needed
+    - cron: *CRON_EXPR # every 20 minutes — change CRON_EXPR above as needed
   workflow_dispatch: {}
 
 jobs:
@@ -14,8 +19,14 @@ jobs:
     # change this to: runs-on: [self-hosted, linux, keepalive]
     runs-on: ubuntu-latest
 
+    # Job-level environment: KEEP_ALIVE_MINUTES is set from the YAML anchor above.
+    # PING_INTERVAL_SECONDS controls how often each ping runs (default 60 = 1 minute).
+    env:
+      KEEP_ALIVE_MINUTES: *KEEP_ALIVE_MINUTES
+      PING_INTERVAL_SECONDS: 60
+
     steps:
-      - name: Run keep-alive loop (10 pings, 1 per minute)
+      - name: Run keep-alive loop (KEEP_ALIVE_MINUTES pings, 1 per PING_INTERVAL_SECONDS)
         env:
           SERVICE_WEB_URL: ${{ secrets.SERVICE_WEB_URL }}
         run: |
@@ -30,10 +41,26 @@ jobs:
           # Build the full URL and ensure we don't have a trailing slash duplication
           KEEP_ALIVE_URL="${SERVICE_WEB_URL%/}/api/public/products"
 
-          echo "Starting keep-alive to ${KEEP_ALIVE_URL} (10 pings, 1 per minute)"
+          echo "Starting keep-alive to ${KEEP_ALIVE_URL} (for ${KEEP_ALIVE_MINUTES} minutes, interval ${PING_INTERVAL_SECONDS}s)"
+
+          # Validate numeric inputs
+          if ! echo "${KEEP_ALIVE_MINUTES}" | grep -Eq '^[0-9]+$'; then
+            echo "KEEP_ALIVE_MINUTES must be a positive integer. Current value: ${KEEP_ALIVE_MINUTES}"; exit 2;
+          fi
+          if ! echo "${PING_INTERVAL_SECONDS}" | grep -Eq '^[0-9]+$'; then
+            echo "PING_INTERVAL_SECONDS must be a positive integer. Current value: ${PING_INTERVAL_SECONDS}"; exit 2;
+          fi
+
+          # Calculate number of pings = total minutes * (60 / interval_seconds)
+          PINGS=$(( (KEEP_ALIVE_MINUTES * 60) / PING_INTERVAL_SECONDS ))
+          if [ "$PINGS" -lt 1 ]; then
+            echo "Computed PINGS < 1 (KEEP_ALIVE_MINUTES=${KEEP_ALIVE_MINUTES}, PING_INTERVAL_SECONDS=${PING_INTERVAL_SECONDS}). Nothing to do."; exit 0;
+          fi
+
+          echo "Will perform ${PINGS} ping(s) using interval ${PING_INTERVAL_SECONDS}s"
 
           FAILURES=0
-          for i in $(seq 1 10); do
+          for i in $(seq 1 $PINGS); do
             echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") Ping #$i"
 
             # Save response body to a temp file, capture HTTP status code.
@@ -60,8 +87,8 @@ jobs:
             rm -f "$TMP_BODY" || true
 
             # Sleep only between pings, not after the last one
-            if [ "$i" -lt 10 ]; then
-              sleep 60
+            if [ "$i" -lt "$PINGS" ]; then
+              sleep "$PING_INTERVAL_SECONDS"
             fi
           done
 
@@ -87,8 +114,9 @@ jobs:
 # Notes:
 # - Create the repository secrets used above at: Settings → Secrets and variables → Actions
 #   * SERVICE_WEB_URL: the public URL of the Render service (https://your-service.onrender.com or custom domain)
-#   * RENDER_DEPLOY_HOOK_URL (optional): the deploy webhook URL Render provides when you create a "Deploy Hook" for the service
 # - If you want the job to run on a self-hosted runner, register a runner in your repository or organization,
 #   add a label such as `keepalive`, and set `runs-on: [self-hosted, linux, keepalive]`.
-# - Avoid overly aggressive cron schedules; hitting the service every minute is usually unnecessary and may violate Render's acceptable use.
-# - If a more authoritative approach is required (triggering a specific image tag deploy), use the Render REST API with `RENDER_API_KEY` and `RENDER_SERVICE_ID` secrets instead of the webhook.
+# - The cron expression is defined at the top under CRON_EXPR (YAML anchor). Because GitHub Actions does
+#   not expand runtime environment variables inside the `on.schedule.cron`, we cannot interpolate the
+#   numeric minutes into the cron expression. Change CRON_EXPR and KEEP_ALIVE_MINUTES_ANCHOR at the top
+#   to modify the schedule and loop duration.
