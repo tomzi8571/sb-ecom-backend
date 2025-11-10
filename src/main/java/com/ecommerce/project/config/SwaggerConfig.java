@@ -29,7 +29,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Spring Boot eCommerce API")
                         .version("1.0")
-                        .description("This is a Spring Boot Project for eCommerce")
                         .summary("An e-commerce backend complementing the sb-ecom-frontend. It provides a sophisticated " +
                                 " REST API allowing for the public and administrative (CRUD) management of products, " +
                                 "product categories, images, shopping carts, users, billing / shipping information " +
