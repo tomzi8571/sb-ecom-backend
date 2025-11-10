@@ -11,6 +11,7 @@ import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repositories.CartRepository;
 import com.ecommerce.project.repositories.CategoryRepository;
 import com.ecommerce.project.repositories.ProductRepository;
+import io.micrometer.common.util.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+    public static final String FALLBACK_IMAGE = "fallback.png";
     @Autowired
     private CartRepository cartRepository;
 
@@ -99,6 +101,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String constructImageUrl(String imageName) {
+        imageName = StringUtils.isEmpty(imageName) ? FALLBACK_IMAGE : imageName;
         return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
     }
 
