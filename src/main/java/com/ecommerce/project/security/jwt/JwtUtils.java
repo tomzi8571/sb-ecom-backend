@@ -7,6 +7,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public class JwtUtils {
     private String jwtSecret;
     @Value("${spring.app.secureCookie}")
     private boolean secureCookie;
+    @Value("${spring.app.sameSite}")
+    private String sameSite;
 
     // Get JWT  Header
     public String getJwtFromHeader(HttpServletRequest request) {
@@ -55,6 +58,7 @@ public class JwtUtils {
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl user) {
         String jwtToken = generateTokenFromUsername(user.getUsername());
+        LOG.debug("Generated JWT Token {}", jwtToken);
         return ResponseCookie.from(jwtCookie, jwtToken)
                 // Make the cookie available to the entire backend ("/") so it is sent on all backend requests
                 .path("/api")
@@ -62,7 +66,7 @@ public class JwtUtils {
                 // HttpOnly = true is recommended so JS cannot read the cookie; the cookie will still be sent by the browser
                 .httpOnly(true)
                 // For cross-site cookie storage you must set SameSite=None and Secure=true (browser requirement)
-                .sameSite("None")
+                .sameSite((StringUtils.isEmpty(sameSite) ? ((secureCookie == true) ? "None" : "Lax") : sameSite))
                 .secure(secureCookie)
                 .build();
     }

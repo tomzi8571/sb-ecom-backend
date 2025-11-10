@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
         String[] frontendUrlList = Arrays.stream(frontendUrls.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
+                .map(s -> StringUtils.removeEnd(s, "/"))
                 .toArray(String[]::new);
         LOG.info("CORS allowed origins (normalized): {}", Arrays.asList(frontendUrlList));
 
