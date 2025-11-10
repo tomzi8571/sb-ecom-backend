@@ -29,7 +29,8 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Spring Boot eCommerce API")
                         .version("1.0")
-                        .summary("An e-commerce backend complementing the sb-ecom-frontend. It provides a sophisticated " +
+                        .summary("This is an e-commerce backend implementation. It is complemented by a REACT based frontend " +
+                                "(https://github.com/sb-ecom-frontend). The backend provides a sophisticated " +
                                 " REST API allowing for the public and administrative (CRUD) management of products, " +
                                 "product categories, images, shopping carts, users, billing / shipping information " +
                                 "and placing orders via the stripe payment provider. ")
