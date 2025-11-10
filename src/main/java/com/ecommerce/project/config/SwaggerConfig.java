@@ -30,14 +30,17 @@ public class SwaggerConfig {
                         .title("Spring Boot eCommerce API")
                         .version("1.0")
                         .description("This is a Spring Boot Project for eCommerce")
-                        .license(new License().name("Our License Link").url("http://embarkx.com"))
+                        .summary("An e-commerce backend complementing the sb-ecom-frontend. It provides a sophisticated " +
+                                " REST API allowing for the public and administrative (CRUD) management of products, " +
+                                "product categories, images, shopping carts, users, billing / shipping information " +
+                                "and placing orders via the stripe payment provider. ")
+                        .license(new License().name("Our License").url("https://github.com/tomzi8571/sb-ecom-backend"))
                         .contact(new Contact()
-                                .name("Faisal Memon")
-                                .email("faisal@embarkx.com")
-                                .url("https://github.com/EmbarkxOfficial")))
+                                .name("Thomas Zillinger (LinkedIn)")
+                                .url("https://linkedin.com/in/thomaszillinger")))
                 .externalDocs(new ExternalDocumentation()
                         .description("Project Documentation")
-                        .url("http://embarkx.com"))
+                        .url("https://github.com/tomzi8571/sb-ecom-backend"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", bearerScheme))
                 .addSecurityItem(bearerRequirement);
